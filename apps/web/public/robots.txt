@@ -1,0 +1,4 @@
+User-agent: *
+# Per-wallet scan pages are ephemeral, point-in-time, and each fresh crawl spends scan budget —
+# keep them out of the index. The home page and the rest stay crawlable.
+Disallow: /scan/

@@ -1,0 +1,16 @@
+{
+    "name": "@watchtower/detect-engine",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "test": "vitest run",
+        "test:rpc-guard": "vitest run rpc-guard"
+    },
+    "devDependencies": {
+        "vitest": "^3.0.0"
+    }
+}
