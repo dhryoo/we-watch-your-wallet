@@ -48,6 +48,9 @@
             <div class="wt-card__right">
                 <div class="wt-action">
                     <div class="wt-action__label">Recommended check</div>
+                    @if (!empty($risk['spenderAddress']))
+                        <div class="wt-action__spender">Spender <span class="wt-mono">{{ $risk['spenderAddress'] }}</span></div>
+                    @endif
                     <x-revoke-button :url="$risk['revokeUrl']" />
                 </div>
             </div>

@@ -62,7 +62,8 @@ class GoPlusScanner
                     continue;
                 }
 
-                $risks[] = $this->riskItem($symbol, $tokenAddr, $input, $severity, $revokeUrl);
+                $spenderAddr = $this->shortAddr($spender['approved_contract'] ?? null);
+                $risks[] = $this->riskItem($symbol, $tokenAddr, $input, $severity, $revokeUrl, $spenderAddr);
             }
         }
 
@@ -103,7 +104,8 @@ class GoPlusScanner
                     continue;
                 }
 
-                $risks[] = $this->nftRiskItem($symbol, $nftAddr, $input, $severity, $revokeUrl);
+                $operatorAddr = $this->shortAddr($operator['approved_contract'] ?? null);
+                $risks[] = $this->nftRiskItem($symbol, $nftAddr, $input, $severity, $revokeUrl, $operatorAddr);
             }
         }
 
@@ -178,7 +180,7 @@ class GoPlusScanner
     }
 
     /** @return array<string,mixed> */
-    private function riskItem(string $symbol, string $tokenAddr, array $input, string $severity, string $revokeUrl): array
+    private function riskItem(string $symbol, string $tokenAddr, array $input, string $severity, string $revokeUrl, string $spenderAddress = ''): array
     {
         $reputation = $input['spenderReputation'];
         $signals = $this->signals($input);
@@ -190,6 +192,7 @@ class GoPlusScanner
             'tokenAddress' => $tokenAddr,
             'tokenInit' => strtoupper(substr($symbol, 0, 1)) ?: '?',
             'spenderTag' => $reputation ?? 'VERIFIED',
+            'spenderAddress' => $spenderAddress,
             'isContract' => $input['spenderType'] === 'CONTRACT',
             'unlimited' => $input['unlimited'],
             'limitText' => $input['unlimited'] ? null : $this->formatAmount($input['amount'], $symbol),
@@ -207,6 +210,14 @@ class GoPlusScanner
      * 온체인 토큰 심볼(공격자 제어 가능)을 안전 charset·길이로 정제.
      * letters/numbers/space/_/- 만 남기고 16자 cap → 프롬프트 인젝션·URL·개행·UI 깨짐 차단.
      */
+    /** 0x 주소를 짧게(0x1234…ab34). 비거나 없으면 빈 문자열. */
+    private function shortAddr(mixed $addr): string
+    {
+        $a = (string) ($addr ?? '');
+
+        return $a !== '' ? Address::short($a) : '';
+    }
+
     private function cleanSymbol(mixed $raw): string
     {
         $stripped = preg_replace('/[^\p{L}\p{N} _-]/u', '', (string) $raw) ?? '';
@@ -370,7 +381,7 @@ class GoPlusScanner
     }
 
     /** @param array<string,mixed> $input @return array<string,mixed> */
-    private function nftRiskItem(string $symbol, string $nftAddr, array $input, string $severity, string $revokeUrl): array
+    private function nftRiskItem(string $symbol, string $nftAddr, array $input, string $severity, string $revokeUrl, string $spenderAddress = ''): array
     {
         $reputation = $input['spenderReputation'];
         [$explain, $why, $checklist] = $this->templateNft($reputation, $symbol);
@@ -380,6 +391,7 @@ class GoPlusScanner
             'tokenAddress' => $nftAddr,
             'tokenInit' => strtoupper(substr($symbol, 0, 1)) ?: '?',
             'spenderTag' => $reputation ?? 'VERIFIED',
+            'spenderAddress' => $spenderAddress,
             'isContract' => $input['spenderType'] === 'CONTRACT',
             'unlimited' => false,
             'limitText' => 'All items',

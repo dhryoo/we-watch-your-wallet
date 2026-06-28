@@ -60,6 +60,7 @@ class ScanApiController extends Controller
                 'token' => $r['token'],
                 'tokenAddress' => $r['tokenAddress'],
                 'spender' => $r['spenderTag'],
+                'spenderAddress' => $r['spenderAddress'] ?? null,
                 'severity' => $r['severity'],
                 'unlimited' => (bool) $r['unlimited'],
                 'limit' => $r['limitText'],

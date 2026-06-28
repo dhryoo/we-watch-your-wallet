@@ -21,7 +21,7 @@ class ScanApiTest extends TestCase
     {
         return new FakeGoPlusGateway([
             ['token_symbol' => 'USDC', 'token_address' => '0xA0b8', 'balance' => '1000', 'approved_list' => [
-                ['approved_amount' => 'unlimited', 'approved_time' => null, 'address_info' => ['is_contract' => 1, 'is_open_source' => 1, 'malicious_behavior' => ['x'], 'doubt_list' => 0, 'trust_list' => 0]],
+                ['approved_contract' => '0x2222222222222222222222222222222222222222', 'approved_amount' => 'unlimited', 'approved_time' => null, 'address_info' => ['is_contract' => 1, 'is_open_source' => 1, 'malicious_behavior' => ['x'], 'doubt_list' => 0, 'trust_list' => 0]],
             ]],
         ]);
     }
@@ -36,7 +36,8 @@ class ScanApiTest extends TestCase
         $response->assertJsonPath('severity', 'URGENT');
         $response->assertJsonPath('risks.0.token', 'USDC');
         $response->assertJsonPath('risks.0.spender', 'MALICIOUS');
-        $response->assertJsonStructure(['address', 'chainId', 'score', 'severity', 'risks' => [['token', 'severity', 'unlimited', 'revokeUrl']], 'disclaimer']);
+        $response->assertJsonStructure(['address', 'chainId', 'score', 'severity', 'risks' => [['token', 'spenderAddress', 'severity', 'unlimited', 'revokeUrl']], 'disclaimer']);
+        $this->assertNotNull($response->json('risks.0.spenderAddress'));
         $response->assertHeader('Access-Control-Allow-Origin', '*');
     }
 

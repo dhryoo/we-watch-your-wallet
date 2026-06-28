@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Scan\Address;
 use App\Scan\FakeGoPlusGateway;
 use App\Scan\GoPlusScanner;
 use App\Scan\RiskExplainer;
@@ -184,6 +185,21 @@ class GoPlusScannerTest extends TestCase
         $this->assertFalse($result['failed']);
         $this->assertTrue($result['stale']);
         $this->assertNotSame([], $result['risks']); // token risks still present
+    }
+
+    public function testSurfacesSpenderContractAddress(): void
+    {
+        $fixture = [
+            ['token_symbol' => 'USDC', 'token_address' => '0xA0b8', 'balance' => '1', 'approved_list' => [
+                ['approved_contract' => '0x1111111111111111111111111111111111111111', 'approved_amount' => 'unlimited', 'approved_time' => null, 'address_info' => $this->spender(1, 1, ['x'], 0, 0)],
+            ]],
+        ];
+
+        $top = (new GoPlusScanner(new FakeGoPlusGateway($fixture)))->scan('0xW', 1)['risks'][0];
+
+        $this->assertNotSame('', $top['spenderAddress']);
+        $this->assertStringStartsWith('0x', $top['spenderAddress']); // 어느 컨트랙트를 revoke할지
+        $this->assertSame(Address::short('0x1111111111111111111111111111111111111111'), $top['spenderAddress']);
     }
 
     public function testPartialGoPlusResponseMarksStale(): void
