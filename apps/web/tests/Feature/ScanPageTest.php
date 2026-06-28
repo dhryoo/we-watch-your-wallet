@@ -91,4 +91,24 @@ class ScanPageTest extends TestCase
     {
         $this->get('/scan/not-an-address')->assertNotFound();
     }
+
+    public function testOgCardShowsUnavailableInsteadOfFakeCleanWhenScanFails(): void
+    {
+        // 정직성: 스캔 실패를 "0 found · score 0"로 공유하지 않는다(가짜 clean 금지).
+        $this->instance(GoPlusGateway::class, new FakeGoPlusGateway([], shouldFail: true));
+
+        $response = $this->get("/scan/{$this->address}/og");
+
+        $response->assertOk();
+        $response->assertSee('Scan unavailable');
+        $response->assertSee('not');
+        $response->assertDontSee('Risky approvals');
+        $response->assertDontSee('Risk score');
+    }
+
+    public function testEmailPreviewIsNotAvailableInProduction(): void
+    {
+        // 이메일 템플릿 미리보기는 로컬 전용(메일러 미구현 → 실주소에 가짜 데이터 노출 방지).
+        $this->get("/scan/{$this->address}/email")->assertNotFound();
+    }
 }

@@ -50,12 +50,12 @@
     <section class="wt-cta">
         <div class="wt-cta__copy">
             <h3 class="wt-cta__h3">Keep watching this wallet</h3>
-            <p class="wt-cta__p">We'll email you when a new risky approval is detected. We never ask for your keys or funds — read-only monitoring by address.</p>
+            <p class="wt-cta__p">Join the free waitlist and we'll email you when a new risky approval is detected. We never ask for your keys or funds — read-only monitoring by address. Monitoring is coming soon; no email is sent yet.</p>
         </div>
         @if (session('monitorStatus') === 'ok')
             <div class="wt-cta__form wt-monitor-ok" role="status">
                 <div class="wt-monitor-ok__title">You're on the watch list</div>
-                <p class="wt-monitor-ok__text">We'll email you when we detect a new risky approval for this wallet. Pro monitoring is coming soon — no email is sent yet.</p>
+                <p class="wt-monitor-ok__text">We'll email you when we detect a new risky approval for this wallet. Free monitoring is coming soon — no email is sent yet.</p>
             </div>
         @else
             <form class="wt-cta__form" method="post" action="{{ url('/monitor') }}">

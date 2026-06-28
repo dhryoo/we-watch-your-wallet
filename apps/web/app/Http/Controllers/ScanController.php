@@ -63,7 +63,7 @@ class ScanController extends Controller
                 : MockScanData::risky($address, self::CHAIN_ID);
             $result['risks'] = ScanResult::sortBySeverityDesc($result['risks']);
 
-            return $this->render('scan.result', $address, $result);
+            return $this->render($result['risks'] === [] ? 'scan.empty' : 'scan.result', $address, $result);
         }
 
         $result = $this->scans->scan($address, self::CHAIN_ID, $request->ip());
@@ -81,9 +81,14 @@ class ScanController extends Controller
         return $this->render($result['risks'] === [] ? 'scan.empty' : 'scan.result', $address, $result);
     }
 
-    public function og(string $address): View
+    public function og(Request $request, string $address): View
     {
-        $result = $this->scans->scan($address, self::CHAIN_ID) ?? $this->blank();
+        if (!preg_match(self::ADDRESS_RE, $address))
+        {
+            abort(404);
+        }
+
+        $result = $this->scans->scan($address, self::CHAIN_ID, $request->ip()) ?? $this->blank();
 
         return view('scan.og', [
             'shortAddress' => Address::short($address),
@@ -91,15 +96,20 @@ class ScanController extends Controller
         ]);
     }
 
+    /** 이메일 템플릿 미리보기 — 로컬 전용. 메일러 미구현이라 공개하면 실주소에 가짜 데이터가 노출되므로 프로덕션 404. */
     public function email(string $address): View
     {
-        $result = $this->scans->scan($address, self::CHAIN_ID);
+        abort_unless(app()->environment('local'), 404);
 
-        if ($result === null || ($result['failed'] ?? false) || $result['risks'] === [])
+        if (!preg_match(self::ADDRESS_RE, $address))
         {
-            $result = MockScanData::risky($address, self::CHAIN_ID); // 데모 폴백
-            $result['risks'] = ScanResult::sortBySeverityDesc($result['risks']);
+            abort(404);
         }
+
+        // 로컬 템플릿 프리뷰 전용 — 항상 목업으로 렌더. 템플릿이 URGENT/Unlimited를 하드코딩하므로
+        // 실주소의 실데이터를 바인딩하면 거짓 위험이 될 수 있다(스캔 호출도 안 함).
+        $result = MockScanData::risky($address, self::CHAIN_ID);
+        $result['risks'] = ScanResult::sortBySeverityDesc($result['risks']);
 
         return view('emails.scan-lead', [
             'shortAddress' => Address::short($address),

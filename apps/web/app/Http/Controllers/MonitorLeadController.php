@@ -15,9 +15,9 @@ class MonitorLeadController extends Controller
     private const ADDRESS_RE = '/^0x[0-9a-fA-F]{40}$/';
 
     /**
-     * Capture a monitoring lead (Pro funnel). Writes ONLY a lead row — no scan / GoPlus / LLM
+     * Capture a free-monitoring waitlist lead. Writes ONLY a lead row — no scan / GoPlus / LLM
      * call (keeps the scan budget and plaintext-only invariant intact). Non-custodial: stores
-     * an email + the wallet to watch, never keys or funds.
+     * an email + the wallet to watch, never keys or funds. Mailer is not yet live — no email is sent.
      */
     public function store(Request $request): RedirectResponse
     {

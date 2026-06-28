@@ -1,5 +1,5 @@
 @php $top = $result['risks'][0]; @endphp
-{{-- 이메일 리드(Pro 전환 깔때기). 이메일 클라이언트 호환 위해 인라인 스타일. --}}
+{{-- 무료 모니터링 알림 이메일 템플릿(로컬 프리뷰 전용 — 메일러 미구현). 이메일 클라이언트 호환 위해 인라인 스타일. --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,9 +56,8 @@
                 <p style="margin:0 0 24px;text-align:center;font-family:'Roboto Mono',monospace;font-size:10px;line-height:1.5;color:#9aa897;">Revoking happens in your own wallet — we never do it for you.</p>
 
                 <div style="background:#ecfcf2;border:1px solid #cfe9d9;border-radius:14px;padding:20px;text-align:center;">
-                    <div style="font-family:'Work Sans';font-weight:400;font-size:19px;letter-spacing:-.04em;color:#2e4f21;margin-bottom:6px;">Continuous monitoring + Telegram alerts</div>
-                    <p style="margin:0 0 14px;font-family:'Work Sans';font-size:12.5px;line-height:1.5;letter-spacing:-.02em;color:#50624a;">We'll alert you the moment a new risk is detected. We never handle your keys or funds.</p>
-                    <a href="#" style="text-decoration:none;display:inline-block;background:#2e4f21;color:#fff;border-radius:40px;padding:12px 26px;font-family:'DM Sans';font-weight:500;font-size:14px;letter-spacing:-.01em;">Start Pro</a>
+                    <div style="font-family:'Work Sans';font-weight:400;font-size:19px;letter-spacing:-.04em;color:#2e4f21;margin-bottom:6px;">Free continuous monitoring</div>
+                    <p style="margin:0;font-family:'Work Sans';font-size:12.5px;line-height:1.5;letter-spacing:-.02em;color:#50624a;">We'll email you the moment a new risk is detected for this wallet. We never handle your keys or funds. Coming soon.</p>
                 </div>
             </div>
 

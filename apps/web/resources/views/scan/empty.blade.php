@@ -31,7 +31,7 @@
         @if (session('monitorStatus') === 'ok')
             <div class="wt-monitor-ok wt-monitor-block" role="status">
                 <div class="wt-monitor-ok__title">You're on the watch list</div>
-                <p class="wt-monitor-ok__text">We'll email you if a risky approval appears for this wallet later. Pro monitoring is coming soon — no email is sent yet.</p>
+                <p class="wt-monitor-ok__text">We'll email you if a risky approval appears for this wallet later. Free monitoring is coming soon — no email is sent yet.</p>
             </div>
         @else
             <form class="wt-monitor-block" method="post" action="{{ url('/monitor') }}">

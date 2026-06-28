@@ -82,7 +82,7 @@
 
         {{-- Panel 3 — THE VISION --}}
         <article class="wt-how__panel">
-            <svg class="wt-how__art" viewBox="0 0 380 220" role="img" aria-label="Continuous monitoring warns you the moment a new risky approval appears, by Telegram or email" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="wt-how__art" viewBox="0 0 380 220" role="img" aria-label="Continuous monitoring warns you the moment a new risky approval appears, by email" fill="none" stroke-linecap="round" stroke-linejoin="round">
                 {{-- radar rings over a wallet constellation --}}
                 <g stroke="#A0F1BD" stroke-width="2" fill="none">
                     <circle cx="150" cy="150" r="34" opacity="0.9"/><circle cx="150" cy="150" r="62" opacity="0.55"/><circle cx="150" cy="150" r="90" opacity="0.3"/>
@@ -118,8 +118,8 @@
             </svg>
             <div class="wt-how__step"><span class="wt-how__num">03</span> · Always watching</div>
             <h3 class="wt-how__title">Get warned before harm, not after</h3>
-            <p class="wt-how__body">Continuous monitoring alerts you the moment a new risky approval appears — by Telegram or email. You're warned in time to act.</p>
-            <span class="wt-how__tag">Pro · coming soon</span>
+            <p class="wt-how__body">Continuous monitoring alerts you the moment a new risky approval appears — straight to your inbox. You're warned in time to act.</p>
+            <span class="wt-how__tag">Free · coming soon</span>
         </article>
 
     </div>

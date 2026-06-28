@@ -15,6 +15,6 @@ class HowProtectsTest extends TestCase
         $response->assertSee('An approval is a key to your wallet');
         $response->assertSee('We surface the risky keys');
         $response->assertSee('Get warned before harm, not after');
-        $response->assertSee('Pro · coming soon', false);
+        $response->assertSee('Free · coming soon', false);
     }
 }
