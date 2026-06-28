@@ -1,4 +1,4 @@
-<x-scan-layout :title="'Wallet risk scan · ' . $shortAddress" :ogImage="url('/scan/' . $address . '/og')" ogDescription="Includes an unlimited USDC approval. Review and revoke yourself if needed.">
+<x-scan-layout :title="'Wallet risk scan · ' . $shortAddress" :ogImage="url('/scan/' . $address . '/og')" ogDescription="Free read-only, non-custodial Ethereum token-approval risk scan.">
     <header class="wt-header">
         <div class="wt-header__row">
             <div class="wt-identity">
@@ -80,6 +80,8 @@
             </form>
         @endif
     </section>
+
+    <div class="wt-share-wrap"><x-share-buttons /></div>
 
     <script>
         (function () {

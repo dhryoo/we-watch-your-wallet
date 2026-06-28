@@ -152,6 +152,51 @@ class GoPlusScannerTest extends TestCase
         $this->assertStringNotContainsString('LLM:', $risks[2]['explain']);
     }
 
+    private function nftFixture(): array
+    {
+        return [
+            ['nft_symbol' => 'BAYC', 'nft_address' => '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D', 'approved_list' => [
+                ['approved_contract' => '0x1E0049783F008A0085193E00003D00cd54003c71', 'approved_time' => null, 'address_info' => $this->spender(1, 1, ['transfer_without_approval'], 0, 0)],
+            ]],
+        ];
+    }
+
+    public function testIncludesNftSetApprovalForAllRisks(): void
+    {
+        $scanner = new GoPlusScanner(new FakeGoPlusGateway([], false, $this->nftFixture()));
+        $result = $scanner->scan('0xWALLET', 1);
+
+        $tokens = array_map(static fn ($r) => $r['token'], $result['risks']);
+        $this->assertContains('BAYC', $tokens);
+
+        $bayc = $result['risks'][array_search('BAYC', $tokens, true)];
+        $this->assertSame('URGENT', $bayc['severity']);          // malicious operator → URGENT
+        $this->assertContains('Approval for all items', $bayc['signals']); // setApprovalForAll signal
+        $this->assertFalse($result['failed']);
+    }
+
+    public function testNftFetchFailureMarksStaleButKeepsTokenRisks(): void
+    {
+        // token approvals OK, NFT endpoint fails → partial data: token risks kept, marked stale (not failed).
+        $scanner = new GoPlusScanner(new FakeGoPlusGateway($this->riskyFixture(), false, [], true));
+        $result = $scanner->scan('0xWALLET', 1);
+
+        $this->assertFalse($result['failed']);
+        $this->assertTrue($result['stale']);
+        $this->assertNotSame([], $result['risks']); // token risks still present
+    }
+
+    public function testPartialGoPlusResponseMarksStale(): void
+    {
+        // GoPlus code 2(부분) 또는 NFT 한쪽 실패 → wasPartial → 결과 STALE(거짓 clean 방지).
+        $scanner = new GoPlusScanner(new FakeGoPlusGateway($this->riskyFixture(), false, [], false, true));
+        $result = $scanner->scan('0xW', 1);
+
+        $this->assertTrue($result['stale']);
+        $this->assertFalse($result['failed']);
+        $this->assertNotSame([], $result['risks']);
+    }
+
     public function testSanitizesAttackerControlledTokenSymbol(): void
     {
         $fixture = [

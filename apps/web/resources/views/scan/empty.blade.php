@@ -56,4 +56,6 @@
             </form>
         @endif
     </section>
+
+    <div class="wt-share-wrap"><x-share-buttons /></div>
 </x-scan-layout>

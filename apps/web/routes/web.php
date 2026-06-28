@@ -9,6 +9,7 @@ Route::view('/how-it-works', 'pages.how-it-works');
 Route::view('/non-custodial', 'pages.non-custodial');
 Route::post('/scan', [ScanController::class, 'store']);
 Route::post('/monitor', [MonitorLeadController::class, 'store']);
+// Public read-only JSON API lives in routes/api.php (sessionless): GET /api/scan/{address}
 
 Route::get('/scan/{address}/og', [ScanController::class, 'og']);
 Route::get('/scan/{address}/email', [ScanController::class, 'email']);

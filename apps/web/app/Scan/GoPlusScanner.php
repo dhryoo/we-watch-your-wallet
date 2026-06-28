@@ -66,6 +66,47 @@ class GoPlusScanner
             }
         }
 
+        // NFT setApprovalForAll(별도 GoPlus 엔드포인트). 실패해도 토큰 결과는 유지하고 stale 표기(부분 데이터).
+        $nftStale = false;
+
+        try
+        {
+            $nftTokens = $this->gateway->nftApprovals($address, $chainId);
+        }
+        catch (\Throwable $e)
+        {
+            $nftTokens = [];
+            $nftStale = true;
+        }
+
+        foreach ($nftTokens as $nft)
+        {
+            $symbol = $this->cleanSymbol($nft['nft_symbol'] ?? $nft['nft_name'] ?? 'NFT');
+            $nftAddr = Address::short((string) ($nft['nft_address'] ?? ''));
+
+            foreach (($nft['approved_list'] ?? []) as $operator)
+            {
+                // setApprovalForAll만 대상. ERC721의 단일토큰 approve(approved_for_all=0)는 제외(1155는 필드 없음→연산자 승인=1).
+                if ((int) ($operator['approved_for_all'] ?? 1) !== 1)
+                {
+                    continue;
+                }
+
+                $reviewed++;
+                $input = $this->mapNftInput($operator, $now);
+                $severity = ApprovalRisk::classify($input);
+                $maxScore = max($maxScore, ApprovalRisk::score($input));
+                $topRank = max($topRank, self::RANK[$severity]);
+
+                if ($severity === 'INFO')
+                {
+                    continue;
+                }
+
+                $risks[] = $this->nftRiskItem($symbol, $nftAddr, $input, $severity, $revokeUrl);
+            }
+        }
+
         $risks = ScanResult::sortBySeverityDesc($risks);
         $risks = $this->enrichExplanations($risks);
 
@@ -73,8 +114,10 @@ class GoPlusScanner
             'score' => $maxScore,
             'severity' => $risks === [] ? 'INFO' : self::SEV[$topRank],
             'approvalsReviewed' => $reviewed,
-            'stale' => false,
+            // NFT 양쪽 실패 / 한쪽 실패 / GoPlus code 2(부분) 중 하나라도면 불완전 → STALE.
+            'stale' => $nftStale || $this->gateway->wasPartial(),
             'failed' => false,
+            'scannedAt' => $now, // 실제 스캔(데이터 fetch) 시각. 캐시되어 24h 동안 동일하게 보고됨.
             'risks' => $risks,
         ];
     }
@@ -88,6 +131,7 @@ class GoPlusScanner
             'approvalsReviewed' => 0,
             'stale' => true,
             'failed' => true,
+            'scannedAt' => time(),
             'risks' => [],
         ];
     }
@@ -301,5 +345,107 @@ class GoPlusScanner
         $rounded = $amount >= 1 ? number_format($amount) : rtrim(rtrim(number_format($amount, 6, '.', ''), '0'), '.');
 
         return "{$rounded} {$symbol}";
+    }
+
+    /**
+     * NFT operator approval(setApprovalForAll) → ApprovalRisk 입력. isSetApprovalForAll=true(+20).
+     * @param array<string,mixed> $operator
+     * @return array<string,mixed>
+     */
+    private function mapNftInput(array $operator, int $now): array
+    {
+        $info = $operator['address_info'] ?? [];
+        $grantedAt = $operator['approved_time'] ?? null;
+
+        return [
+            'spenderReputation' => $this->reputation($info),
+            'spenderType' => ((int) ($info['is_contract'] ?? 1) === 0) ? 'EOA' : 'CONTRACT',
+            'unlimited' => false, // setApprovalForAll로 별도 가중(중복가산 방지)
+            'isSetApprovalForAll' => true,
+            'balanceMultipleOver50x' => false,
+            'highValueToken' => false,
+            'recentlyGranted' => is_numeric($grantedAt) && (int) $grantedAt > 0 && ($now - (int) $grantedAt) < self::RECENT_WINDOW,
+            'amount' => 0.0,
+        ];
+    }
+
+    /** @param array<string,mixed> $input @return array<string,mixed> */
+    private function nftRiskItem(string $symbol, string $nftAddr, array $input, string $severity, string $revokeUrl): array
+    {
+        $reputation = $input['spenderReputation'];
+        [$explain, $why, $checklist] = $this->templateNft($reputation, $symbol);
+
+        return [
+            'token' => $symbol,
+            'tokenAddress' => $nftAddr,
+            'tokenInit' => strtoupper(substr($symbol, 0, 1)) ?: '?',
+            'spenderTag' => $reputation ?? 'VERIFIED',
+            'isContract' => $input['spenderType'] === 'CONTRACT',
+            'unlimited' => false,
+            'limitText' => 'All items',
+            'stale' => false,
+            'signals' => $this->nftSignals($input),
+            'explain' => $explain,
+            'why' => $why,
+            'checklist' => $checklist,
+            'severity' => $severity,
+            'revokeUrl' => $revokeUrl,
+        ];
+    }
+
+    /** @param array<string,mixed> $input @return array<int,string> */
+    private function nftSignals(array $input): array
+    {
+        $signals = ['Approval for all items'];
+
+        if ($input['spenderReputation'] === 'MALICIOUS')
+        {
+            $signals[] = 'Malicious operator';
+        }
+
+        if ($input['spenderReputation'] === 'UNVERIFIED')
+        {
+            $signals[] = 'Unverified contract';
+        }
+
+        if ($input['spenderType'] === 'EOA')
+        {
+            $signals[] = 'EOA operator';
+        }
+
+        if ($input['recentlyGranted'])
+        {
+            $signals[] = 'Recently granted';
+        }
+
+        return $signals;
+    }
+
+    /** @return array{0:string,1:string,2:array<int,string>} */
+    private function templateNft(?string $reputation, string $symbol): array
+    {
+        if ($reputation === 'MALICIOUS')
+        {
+            return [
+                "An operator flagged as malicious can transfer every {$symbol} NFT in your wallet (approval for all).",
+                'A setApprovalForAll grant lets the operator move your entire collection in one transaction.',
+                ['Confirm you recognize this operator', "Revoke it if you don't use it"],
+            ];
+        }
+
+        if ($reputation === 'UNVERIFIED')
+        {
+            return [
+                "An unverified operator can transfer every {$symbol} NFT in your wallet (approval for all). Its source code cannot be independently reviewed.",
+                'Approval for all gives the operator full control of the collection; unverified code cannot be checked.',
+                ['Check the operator on a block explorer', 'Revoke if you no longer use it'],
+            ];
+        }
+
+        return [
+            "An operator has approval to transfer all of your {$symbol} NFTs (setApprovalForAll).",
+            'Approval-for-all grants you no longer use stay active and can move the whole collection; revoking limits exposure.',
+            ['Confirm you still use this marketplace or app', 'Revoke the approval-for-all if unused'],
+        ];
     }
 }

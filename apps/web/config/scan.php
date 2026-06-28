@@ -3,7 +3,8 @@
 return [
     // 4중 비용격리 설정
     'cache_ttl' => (int) env('SCAN_CACHE_TTL', 86400),         // 주소별 24h 캐시
-    'ip_daily_limit' => (int) env('SCAN_IP_DAILY_LIMIT', 30),  // IP 일일 신선스캔 한도
+    // IP 일일 신선스캔 한도. 주의: 신선 스캔 1회 ≈ GoPlus 3콜(token + nft721 + nft1155) + 최대 LLM 1콜. 한도 산정 시 고려.
+    'ip_daily_limit' => (int) env('SCAN_IP_DAILY_LIMIT', 30),
     'wallet_daily_limit' => (int) env('SCAN_WALLET_DAILY_LIMIT', 5), // 지갑 일일 한도
     'monitor_ip_daily_limit' => (int) env('MONITOR_IP_DAILY_LIMIT', 10), // 리드 폼 IP 일일 제출 한도(스캔 버킷과 분리)
     'turnstile' => [

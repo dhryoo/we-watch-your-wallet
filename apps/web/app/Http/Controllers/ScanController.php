@@ -103,7 +103,7 @@ class ScanController extends Controller
 
         return view('emails.scan-lead', [
             'shortAddress' => Address::short($address),
-            'scannedAt' => now()->utc()->format('Y-m-d H:i') . ' UTC',
+            'scannedAt' => gmdate('Y-m-d H:i', (int) ($result['scannedAt'] ?? time())) . ' UTC',
             'result' => $result,
             'revokeUrl' => MockScanData::revokeUrl($address, self::CHAIN_ID),
         ]);
@@ -117,7 +117,7 @@ class ScanController extends Controller
             'chainId' => self::CHAIN_ID,
             'maskedAddress' => Address::mask($address),
             'shortAddress' => Address::short($address),
-            'scannedAt' => now()->utc()->format('Y-m-d H:i') . ' UTC',
+            'scannedAt' => gmdate('Y-m-d H:i', (int) ($result['scannedAt'] ?? time())) . ' UTC',
             'result' => $result,
         ]);
     }
