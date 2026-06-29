@@ -31,6 +31,13 @@
     // Same pattern as WalletAddress::extract: a 0x + 40 hex run not followed by another hex
     // char (so a 64-hex tx hash is rejected, and an EIP-681 "ethereum:0x…@1" paste still matches).
     var ADDR_RE = /0x[0-9a-fA-F]{40}(?![0-9a-fA-F])/;
+    // Mirrors Ens::looksLikeName — an ENS .eth name (the server resolves it via RPC).
+    var ENS_RE = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\.eth$/;
+
+    function isValid(value)
+    {
+        return ADDR_RE.test(value) || ENS_RE.test(value.trim().toLowerCase());
+    }
 
     function clearError()
     {
@@ -41,7 +48,7 @@
 
     form.addEventListener('submit', function (e)
     {
-        if (ADDR_RE.test(input.value))
+        if (isValid(input.value))
         {
             clearError();
             return; // valid → let scan-loading.js show the overlay and submit
@@ -51,7 +58,7 @@
         e.preventDefault();
         e.stopImmediatePropagation();
 
-        error.textContent = 'Enter a valid 0x Ethereum address.';
+        error.textContent = 'Enter a valid 0x Ethereum address or ENS name.';
         error.hidden = false;
         input.setAttribute('aria-invalid', 'true');
         input.focus();

@@ -3,12 +3,12 @@
         <div class="wt-hero__main">
             <span class="wt-chain-chip" style="margin-bottom:20px;"><span class="wt-chain-chip__dot"></span><span class="wt-chain-chip__label">Ethereum · read-only</span></span>
             <h1 style="margin:0 0 14px;font-family:var(--font-display);font-weight:300;font-size:46px;letter-spacing:-.06em;color:var(--wt-green);max-width:720px;">Scan a wallet for risky token approvals</h1>
-            <p style="margin:0 0 28px;font-size:16px;line-height:1.55;letter-spacing:-.02em;color:#50624a;max-width:560px;">Paste an address to see unlimited, unverified, or malicious approvals — free and non-custodial. We never touch your keys or funds, and you revoke yourself in your own wallet.</p>
+            <p style="margin:0 0 28px;font-size:16px;line-height:1.55;letter-spacing:-.02em;color:#50624a;max-width:560px;">Enter a 0x address or ENS name to see unlimited, unverified, or malicious approvals — free and non-custodial. We never touch your keys or funds, and you revoke yourself in your own wallet.</p>
 
             <form method="post" action="/scan" data-scan-loading style="max-width:560px;">
                 @csrf
                 <div class="wt-cta__inputrow">
-                    <input id="wt-address-input" class="wt-input" type="text" name="address" value="{{ old('address') }}" placeholder="0x… wallet address" aria-label="Wallet address" autocomplete="off" spellcheck="false">
+                    <input id="wt-address-input" class="wt-input" type="text" name="address" value="{{ old('address') }}" placeholder="0x… address or vitalik.eth" aria-label="Wallet address or ENS name" autocomplete="off" spellcheck="false">
                     <button class="wt-btn wt-btn--solid" type="submit">Scan</button>
                 </div>
                 <button type="button" id="wt-qr-open" class="wt-qr-trigger" hidden>

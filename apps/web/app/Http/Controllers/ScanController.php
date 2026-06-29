@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Scan\Address;
+use App\Scan\Ens;
+use App\Scan\EnsException;
+use App\Scan\EnsResolver;
 use App\Scan\MockScanData;
 use App\Scan\ScanResult;
 use App\Scan\ScanService;
@@ -10,6 +13,7 @@ use App\Scan\Turnstile;
 use App\Scan\WalletAddress;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class ScanController extends Controller
@@ -27,17 +31,20 @@ class ScanController extends Controller
         return view('home', ['sitekey' => config('scan.turnstile.sitekey')]);
     }
 
-    /** 스캔 트리거(인간 진입점) — Turnstile 검증 후 결과 페이지로. */
-    public function store(Request $request, Turnstile $turnstile): RedirectResponse
+    /** 스캔 트리거(인간 진입점) — Turnstile 검증 후 결과 페이지로. 0x 주소 또는 ENS(.eth) 이름 허용. */
+    public function store(Request $request, Turnstile $turnstile, EnsResolver $ens): RedirectResponse
     {
-        $request->validate(['address' => ['required', 'string']]);
+        $request->validate(['address' => ['required', 'string', 'max:255']]);
+
+        $input = (string) $request->input('address');
 
         // QR/붙여넣기 텍스트(EIP-681 ethereum:0x…@1 포함)에서 0x 주소 추출.
-        $address = WalletAddress::extract((string) $request->input('address'));
+        $address = WalletAddress::extract($input);
 
-        if ($address === null)
+        // 0x도 ENS 이름꼴도 아니면 turnstile 소모 없이 즉시 형식 오류(오타가 캡차를 재요구하지 않게).
+        if ($address === null && !Ens::looksLikeName($input))
         {
-            return back()->withErrors(['address' => 'Enter a valid 0x Ethereum address.'])->withInput();
+            return back()->withErrors(['address' => 'Enter a valid 0x Ethereum address or ENS name.'])->withInput();
         }
 
         if (!$turnstile->verify($request->input('cf-turnstile-response'), $request->ip()))
@@ -45,7 +52,46 @@ class ScanController extends Controller
             return back()->withErrors(['address' => 'Captcha verification failed. Please try again.'])->withInput();
         }
 
+        // ENS 이름이면 해석(24h 캐시). 정직성: 일시적 실패는 재시도 안내, "주소 없음"과 구분.
+        if ($address === null)
+        {
+            try
+            {
+                $address = $this->resolveEns($input, $ens);
+            }
+            catch (EnsException)
+            {
+                return back()->withErrors(['address' => "Couldn't resolve that ENS name right now. Try again, or paste the 0x address."])->withInput();
+            }
+
+            if ($address === null)
+            {
+                return back()->withErrors(['address' => 'That ENS name has no Ethereum address set.'])->withInput();
+            }
+        }
+
         return redirect('/scan/' . $address);
+    }
+
+    /** ENS 이름 → 0x 주소(성공 시에만 24h 캐시). 음수/예외는 캐시하지 않는다. */
+    private function resolveEns(string $input, EnsResolver $ens): ?string
+    {
+        $name = strtolower(trim($input));
+        $cached = Cache::get('ens:' . $name);
+
+        if (is_string($cached))
+        {
+            return $cached;
+        }
+
+        $address = $ens->resolve($name);
+
+        if ($address !== null)
+        {
+            Cache::put('ens:' . $name, $address, (int) config('scan.cache_ttl', 86400));
+        }
+
+        return $address;
     }
 
     public function show(Request $request, string $address): View

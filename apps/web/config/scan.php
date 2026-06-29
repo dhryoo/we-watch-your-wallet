@@ -17,6 +17,11 @@ return [
     ],
     // 오픈소스 저장소 URL. 설정 시에만 nav "Open source" 링크 + 신뢰페이지 "Verify it yourself" 노출(정직성: 공개 전엔 주장 안 함).
     'repo_url' => env('GITHUB_REPO_URL'),
+    // ENS 이름 해석용 공개 이더리움 RPC(키 불필요, eth_call). 제3자 이름-해석 서비스 미사용. 결과는 24h 캐시.
+    // 기본값 publicnode(키리스). cloudflare-eth.com은 공개 게이트웨이 종료(-32046). 키 RPC는 ENS_RPC_URL로 교체.
+    'ens' => [
+        'rpc_url' => env('ENS_RPC_URL', 'https://ethereum-rpc.publicnode.com'),
+    ],
     // 위험 평문 설명용 LLM. 키 미설정 시 NullRiskExplainer → 결정론적 템플릿 폴백(idle-zero 유지).
     // 키 설정 시 신선 스캔에서만 Haiku 호출(24h 캐시·일일한도로 비용 묶임).
     'llm' => [

@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\Scan\ClaudeRiskExplainer;
+use App\Scan\EnsResolver;
 use App\Scan\GoPlusGateway;
 use App\Scan\GoPlusHttpGateway;
 use App\Scan\GoPlusScanner;
 use App\Scan\NullRiskExplainer;
 use App\Scan\RiskExplainer;
+use App\Scan\RpcEnsResolver;
 use App\Scan\Turnstile;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -20,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(GoPlusGateway::class, GoPlusHttpGateway::class);
+        $this->app->bind(EnsResolver::class, static fn () => new RpcEnsResolver((string) config('scan.ens.rpc_url', 'https://ethereum-rpc.publicnode.com')));
         $this->app->singleton(Turnstile::class, static fn () => new Turnstile(config('scan.turnstile.secret')));
 
         // 키 설정 + 활성 시에만 Claude 설명, 아니면 no-op(템플릿 폴백). GoPlusScanner가 주입받는다.
