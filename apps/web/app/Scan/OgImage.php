@@ -51,6 +51,51 @@ class OgImage
         return $png;
     }
 
+    /** 홈/문서 페이지 공유용 일반 브랜드 카드(지갑/게이지 없는 히어로). @return string PNG bytes */
+    public function brandCard(): string
+    {
+        $im = imagecreatetruecolor(self::W, self::H);
+        imagealphablending($im, true);
+        imagefill($im, 0, 0, $this->c($im, '#2E4F21'));
+        imagefilledellipse($im, 1110, 90, 420, 420, $this->c($im, '#3A6029'));
+        imagefilledellipse($im, 1110, 90, 260, 260, $this->c($im, '#456F31'));
+
+        $this->header($im);
+        $this->text($im, 62, self::PADX, 300, '#FFFFFF', 'Scan your wallet for');
+        $this->text($im, 62, self::PADX, 376, '#FFFFFF', 'risky token approvals', true);
+        $this->text($im, 22, self::PADX, 434, '#A0F1BD', 'Free · non-custodial · read-only · 5 chains');
+        $this->footer($im);
+
+        ob_start();
+        imagepng($im);
+        $png = (string) ob_get_clean();
+        imagedestroy($im);
+
+        return $png;
+    }
+
+    /** 정사각 브랜드 아이콘(apple-touch-icon 등). @return string PNG bytes */
+    public function brandIcon(int $size): string
+    {
+        $im = imagecreatetruecolor($size, $size);
+        imagealphablending($im, true);
+        imagefill($im, 0, 0, $this->c($im, '#2E4F21'));
+
+        $pad = (int) round($size * 0.16);
+        $this->roundedRect($im, $pad, $pad, $size - $pad, $size - $pad, (int) round($size * 0.20), $this->c($im, '#A0F1BD'));
+
+        $cx = (int) round($size / 2);
+        imagefilledellipse($im, $cx, $cx, (int) round($size * 0.36), (int) round($size * 0.36), $this->c($im, '#2E4F21'));
+        imagefilledellipse($im, $cx, $cx, (int) round($size * 0.18), (int) round($size * 0.18), $this->c($im, '#A0F1BD'));
+
+        ob_start();
+        imagepng($im);
+        $png = (string) ob_get_clean();
+        imagedestroy($im);
+
+        return $png;
+    }
+
     private function header($im): void
     {
         // 로고 칩 + 그린 링

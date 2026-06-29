@@ -1,4 +1,4 @@
-<x-scan-layout title="What 'non-custodial' means">
+<x-scan-layout title="What 'non-custodial' means" description="We Watch Your Wallet is non-custodial and read-only: we never access your private keys or funds, never ask you to connect a wallet, and only read public on-chain data. You revoke approvals yourself.">
     <div class="wt-doc">
         <h1>Non-custodial, read-only</h1>
         <p class="wt-doc__lead">A security tool should be the one you trust most. So here is exactly what we do — and never do — with your wallet.</p>

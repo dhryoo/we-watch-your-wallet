@@ -1,4 +1,4 @@
-<x-scan-layout title="API">
+<x-scan-layout title="API" description="Free public read-only JSON API for Ethereum token-approval risk: GET /api/scan/{address} across 5 chains. No auth, CORS-open, non-custodial.">
     <div class="wt-doc">
         <h1>Public API</h1>
         <p class="wt-doc__lead">A free, read-only JSON endpoint to scan any Ethereum address for risky token &amp; NFT approvals. No key, no auth, CORS-enabled — embed it anywhere.</p>

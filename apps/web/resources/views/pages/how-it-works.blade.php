@@ -1,4 +1,4 @@
-<x-scan-layout title="How it works">
+<x-scan-layout title="How it works" description="How We Watch Your Wallet scans your Ethereum token approvals, scores risk, and helps you revoke dangerous approvals yourself — read-only and non-custodial, we never touch your keys or funds.">
     <div class="wt-doc">
         <h1>How it works</h1>
         <p class="wt-doc__lead">We Watch Your Wallet is a free, read-only scanner for risky Ethereum token approvals. Paste an address, see what could drain it, and revoke the dangerous ones yourself — we never touch your keys or funds.</p>

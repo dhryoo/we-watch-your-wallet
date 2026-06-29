@@ -1,4 +1,4 @@
-<x-scan-layout title="Free wallet risk scan">
+<x-scan-layout title="Free wallet risk scan" description="Free, non-custodial, read-only scan of your Ethereum wallet's token approvals across 5 chains — spot unlimited, unverified, or malicious approvals and revoke them yourself. No wallet connection, no keys, no signup.">
     <section class="wt-hero">
         <div class="wt-hero__main">
             <span class="wt-chain-chip" style="margin-bottom:20px;"><span class="wt-chain-chip__dot"></span><span class="wt-chain-chip__label">Ethereum · read-only</span></span>
