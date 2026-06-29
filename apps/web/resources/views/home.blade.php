@@ -8,6 +8,11 @@
             <form method="post" action="/scan" data-scan-loading style="max-width:560px;">
                 @csrf
                 <div class="wt-cta__inputrow">
+                    <select name="chain" class="wt-chain-select" aria-label="Network">
+                        @foreach ($chains as $c)
+                            <option value="{{ $c['slug'] }}" @selected(old('chain', 'ethereum') === $c['slug'])>{{ $c['label'] }}</option>
+                        @endforeach
+                    </select>
                     <input id="wt-address-input" class="wt-input" type="text" name="address" value="{{ old('address') }}" placeholder="0x… address or vitalik.eth" aria-label="Wallet address or ENS name" autocomplete="off" spellcheck="false">
                     <button class="wt-btn wt-btn--solid" type="submit">Scan</button>
                 </div>

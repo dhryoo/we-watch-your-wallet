@@ -20,7 +20,7 @@ class OgImage
     }
 
     /** @param array<string,mixed> $result @return string PNG bytes */
-    public function render(array $result, string $shortAddress): string
+    public function render(array $result, string $shortAddress, string $chainLabel = 'Ethereum'): string
     {
         $im = imagecreatetruecolor(self::W, self::H);
         imagealphablending($im, true);
@@ -38,7 +38,7 @@ class OgImage
         }
         else
         {
-            $this->resultBody($im, $result, $shortAddress);
+            $this->resultBody($im, $result, $shortAddress, $chainLabel);
         }
 
         $this->footer($im);
@@ -65,10 +65,10 @@ class OgImage
     }
 
     /** @param array<string,mixed> $result */
-    private function resultBody($im, array $result, string $shortAddress): void
+    private function resultBody($im, array $result, string $shortAddress, string $chainLabel = 'Ethereum'): void
     {
         // 체인/주소 칩
-        $chipText = 'Ethereum · ' . $shortAddress;
+        $chipText = $chainLabel . ' · ' . $shortAddress;
         $chipW = 18 + 9 + 11 + $this->textW(16, $chipText) + 18;
         $this->roundedRect($im, self::PADX, 168, self::PADX + (int) $chipW, 208, 20, $this->c($im, '#3A6029'));
         imagefilledellipse($im, self::PADX + 18 + 4, 188, 9, 9, $this->c($im, '#A0F1BD'));

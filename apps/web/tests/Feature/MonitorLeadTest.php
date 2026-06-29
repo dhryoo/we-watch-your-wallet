@@ -51,6 +51,27 @@ class MonitorLeadTest extends TestCase
         ]);
     }
 
+    public function testStoresSelectedChainId(): void
+    {
+        $this->post('/monitor', $this->payload(['chain' => 'base']))->assertRedirect();
+
+        $this->assertDatabaseHas('monitor_leads', [
+            'email' => 'you@example.com',
+            'wallet_address' => $this->address,
+            'chain_id' => 8453,
+        ]);
+    }
+
+    public function testMissingChainDefaultsToEthereum(): void
+    {
+        $this->post('/monitor', $this->payload())->assertRedirect();
+
+        $this->assertDatabaseHas('monitor_leads', [
+            'email' => 'you@example.com',
+            'chain_id' => 1,
+        ]);
+    }
+
     public function testEmailIsNormalizedToLowercaseAndTrimmed(): void
     {
         $this->post('/monitor', $this->payload(['email' => '  You@Example.COM  ']));

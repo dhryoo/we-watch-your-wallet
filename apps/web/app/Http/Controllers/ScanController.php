@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Scan\Address;
+use App\Scan\Chain;
 use App\Scan\Ens;
 use App\Scan\EnsException;
 use App\Scan\EnsResolver;
@@ -30,13 +31,24 @@ class ScanController extends Controller
     /** 랜딩 — 주소 입력 + Turnstile 위젯 → POST /scan. */
     public function home(): View
     {
-        return view('home', ['sitekey' => config('scan.turnstile.sitekey')]);
+        return view('home', [
+            'sitekey' => config('scan.turnstile.sitekey'),
+            'chains' => Chain::all(),
+        ]);
     }
 
     /** 스캔 트리거(인간 진입점) — Turnstile 검증 후 결과 페이지로. 0x 주소 또는 ENS(.eth) 이름 허용. */
     public function store(Request $request, Turnstile $turnstile, EnsResolver $ens): RedirectResponse
     {
         $request->validate(['address' => ['required', 'string', 'max:255']]);
+
+        // 체인 선택(홈 드롭다운). 미지원/누락 시 ethereum으로 폴백.
+        $chain = (string) $request->input('chain', Chain::DEFAULT);
+
+        if (Chain::fromSlug($chain) === null)
+        {
+            $chain = Chain::DEFAULT;
+        }
 
         $input = (string) $request->input('address');
 
@@ -72,7 +84,7 @@ class ScanController extends Controller
             }
         }
 
-        return redirect('/scan/' . $address);
+        return redirect(Chain::scanPath($chain, $address));
     }
 
     /** ENS 이름 → 0x 주소(성공 시에만 24h 캐시). 음수/예외는 캐시하지 않는다. */
@@ -96,8 +108,13 @@ class ScanController extends Controller
         return $address;
     }
 
-    public function show(Request $request, string $address): View
+    public function show(Request $request): View
     {
+        // 라우트 파라미터는 이름으로 읽는다(Laravel의 위치기반 주입을 피해 두 라우트 형태를 한 메서드로).
+        $address = (string) $request->route('address');
+        $chain = (string) $request->route('chain', Chain::DEFAULT);
+        $chainId = $this->chainId($chain);
+
         if (!preg_match(self::ADDRESS_RE, $address))
         {
             abort(404);
@@ -107,55 +124,65 @@ class ScanController extends Controller
         if ($request->boolean('demo'))
         {
             $result = $request->query('state') === 'safe'
-                ? MockScanData::safe($address, self::CHAIN_ID)
-                : MockScanData::risky($address, self::CHAIN_ID);
+                ? MockScanData::safe($address, $chainId)
+                : MockScanData::risky($address, $chainId);
             $result['risks'] = ScanResult::sortBySeverityDesc($result['risks']);
 
-            return $this->render($result['risks'] === [] ? 'scan.empty' : 'scan.result', $address, $result);
+            return $this->render($result['risks'] === [] ? 'scan.empty' : 'scan.result', $chain, $address, $result);
         }
 
-        $result = $this->scans->scan($address, self::CHAIN_ID, $request->ip());
+        $result = $this->scans->scan($address, $chainId, $request->ip());
 
         if ($result === null)
         {
-            return $this->render('scan.limited', $address, $this->blank());
+            return $this->render('scan.limited', $chain, $address, $this->blank());
         }
 
         if ($result['failed'] ?? false)
         {
-            return $this->render('scan.unavailable', $address, $result);
+            return $this->render('scan.unavailable', $chain, $address, $result);
         }
 
-        return $this->render($result['risks'] === [] ? 'scan.empty' : 'scan.result', $address, $result);
+        return $this->render($result['risks'] === [] ? 'scan.empty' : 'scan.result', $chain, $address, $result);
     }
 
-    public function og(Request $request, string $address): View
+    public function og(Request $request): View
     {
+        $address = (string) $request->route('address');
+        $chain = (string) $request->route('chain', Chain::DEFAULT);
+        $chainId = $this->chainId($chain);
+
         if (!preg_match(self::ADDRESS_RE, $address))
         {
             abort(404);
         }
 
-        $result = $this->scans->scan($address, self::CHAIN_ID, $request->ip()) ?? $this->blank();
+        $result = $this->scans->scan($address, $chainId, $request->ip()) ?? $this->blank();
 
         return view('scan.og', [
             'shortAddress' => Address::short($address),
+            'chainLabel' => Chain::labelFor($chainId),
             'result' => $result,
         ]);
     }
 
     /** OG 공유 이미지(PNG) — 소셜 크롤러가 og:image로 가져간다. 결과 지문 기준 24h 캐시. 실패 시 정직한 unavailable 카드. */
-    public function ogImage(Request $request, string $address, OgImage $og): Response
+    public function ogImage(Request $request, OgImage $og): Response
     {
+        $address = (string) $request->route('address');
+        $chain = (string) $request->route('chain', Chain::DEFAULT);
+        $chainId = $this->chainId($chain);
+
         if (!preg_match(self::ADDRESS_RE, $address))
         {
             abort(404);
         }
 
-        $result = $this->scans->scan($address, self::CHAIN_ID, $request->ip()) ?? $this->blank();
+        $result = $this->scans->scan($address, $chainId, $request->ip()) ?? $this->blank();
 
         $fingerprint = md5(implode('|', [
             strtolower($address),
+            (string) $chainId,
             (string) ($result['severity'] ?? ''),
             (string) ($result['score'] ?? ''),
             (string) count($result['risks'] ?? []),
@@ -165,13 +192,26 @@ class ScanController extends Controller
         $png = Cache::remember(
             'og:png:' . $fingerprint,
             (int) config('scan.cache_ttl', 86400),
-            fn () => $og->render($result, Address::short($address)),
+            fn () => $og->render($result, Address::short($address), Chain::labelFor($chainId)),
         );
 
         return response($png, 200, [
             'Content-Type' => 'image/png',
             'Cache-Control' => 'public, max-age=86400',
         ]);
+    }
+
+    /** 체인 slug → chainId. 미지원이면 404(라우트 제약과 이중 안전장치). */
+    private function chainId(string $chain): int
+    {
+        $resolved = Chain::fromSlug($chain);
+
+        if ($resolved === null)
+        {
+            abort(404);
+        }
+
+        return $resolved['id'];
     }
 
     /** 이메일 템플릿 미리보기 — 로컬 전용. 메일러 미구현이라 공개하면 실주소에 가짜 데이터가 노출되므로 프로덕션 404. */
@@ -198,11 +238,16 @@ class ScanController extends Controller
     }
 
     /** @param array<string,mixed> $result */
-    private function render(string $view, string $address, array $result): View
+    private function render(string $view, string $chain, string $address, array $result): View
     {
+        $chainId = $this->chainId($chain);
+
         return view($view, [
             'address' => $address,
-            'chainId' => self::CHAIN_ID,
+            'chainId' => $chainId,
+            'chainSlug' => $chain,
+            'chainLabel' => Chain::labelFor($chainId),
+            'scanBase' => Chain::scanPath($chain, $address),
             'maskedAddress' => Address::mask($address),
             'shortAddress' => Address::short($address),
             'scannedAt' => gmdate('Y-m-d H:i', (int) ($result['scannedAt'] ?? time())) . ' UTC',

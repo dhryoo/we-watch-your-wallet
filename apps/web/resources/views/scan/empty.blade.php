@@ -1,8 +1,8 @@
-<x-scan-layout :title="'No risky approvals · ' . $shortAddress" :ogImage="url('/scan/' . $address . '/og-image')" ogDescription="Free read-only, non-custodial Ethereum token-approval risk scan.">
+<x-scan-layout :title="'No risky approvals · ' . $shortAddress" :ogImage="url($scanBase . '/og-image')" ogDescription="Free read-only, non-custodial Ethereum token-approval risk scan.">
     <header class="wt-header wt-header--simple">
         <div class="wt-identity">
             <div class="wt-chiprow">
-                <span class="wt-chain-chip"><span class="wt-chain-chip__dot"></span><span class="wt-chain-chip__label">Ethereum · chainId {{ $chainId }}</span></span>
+                <span class="wt-chain-chip"><span class="wt-chain-chip__dot"></span><span class="wt-chain-chip__label">{{ $chainLabel }} · chainId {{ $chainId }}</span></span>
             </div>
             <div class="wt-addr" style="margin-bottom:12px;">{{ $maskedAddress }}</div>
             <div style="font-size:13px;letter-spacing:-.02em;color:var(--wt-sage);">Scanned&nbsp;&nbsp;{{ $scannedAt }} · {{ $result['approvalsReviewed'] }} approvals reviewed</div>
@@ -15,7 +15,7 @@
                     <span class="wt-badge__label">INFO · Healthy</span>
                 </span>
             </div>
-            <a href="{{ url('/scan/' . $address) }}" class="wt-btn wt-btn--solid" style="align-self:center;" data-scan-loading data-addr="{{ $address }}">Re-scan</a>
+            <a href="{{ url($scanBase) }}" class="wt-btn wt-btn--solid" style="align-self:center;" data-scan-loading data-addr="{{ $address }}">Re-scan</a>
         </div>
     </header>
 
@@ -25,7 +25,7 @@
         <p class="wt-empty__p">None of the {{ $result['approvalsReviewed'] }} token approvals we reviewed had unlimited permissions or unverified or malicious spenders.</p>
         <p class="wt-empty__note">Approval status can change over time. Check back periodically.</p>
         <div class="wt-empty__actions">
-            <a href="{{ url('/scan/' . $address . '/og') }}" class="wt-btn wt-btn--outline"><span style="font-size:13px;">↗</span> Share result</a>
+            <a href="{{ url($scanBase . '/og') }}" class="wt-btn wt-btn--outline"><span style="font-size:13px;">↗</span> Share result</a>
         </div>
 
         @if (session('monitorStatus') === 'ok')
@@ -40,6 +40,7 @@
                 <input type="hidden" name="wallet_address" value="{{ $address }}">
                 <input type="hidden" name="scanned_wallet" value="{{ $address }}">
                 <input type="hidden" name="scan_severity" value="{{ $result['severity'] }}">
+                <input type="hidden" name="chain" value="{{ $chainSlug }}">
                 @error('monitor')<div class="wt-form-error" style="margin:0 0 10px;">{{ $message }}</div>@enderror
                 {{-- honeypot: a real person leaves this empty --}}
                 <input type="text" name="website" class="wt-hp" tabindex="-1" autocomplete="off" aria-hidden="true">

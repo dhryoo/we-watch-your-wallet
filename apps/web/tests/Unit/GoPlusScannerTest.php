@@ -74,6 +74,20 @@ class GoPlusScannerTest extends TestCase
         $this->assertFalse($result['failed']);
     }
 
+    public function testSkipsNftScanOnTokenOnlyChainsSoNoFalseStale(): void
+    {
+        // base(8453)는 GoPlus NFT approval 미지원 → NFT 시도 자체를 안 해 거짓 STALE이 생기면 안 된다.
+        $gateway = new FakeGoPlusGateway($this->riskyFixture(), nftShouldFail: true);
+        $scanner = new GoPlusScanner($gateway);
+
+        $base = $scanner->scan('0xWALLET', 8453);
+        $this->assertFalse($base['stale']);
+
+        // ethereum(1)은 NFT 지원 → NFT 실패를 정직하게 STALE로 표기.
+        $eth = $scanner->scan('0xWALLET', 1);
+        $this->assertTrue($eth['stale']);
+    }
+
     public function testGatewayFailureProducesStaleNotHealthy(): void
     {
         $result = (new GoPlusScanner(new FakeGoPlusGateway([], true)))->scan('0xWALLET', 1);

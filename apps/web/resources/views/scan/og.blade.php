@@ -33,7 +33,7 @@
                 <div style="flex:1;">
                     <div style="display:inline-flex;align-items:center;gap:9px;background:rgba(160,241,189,.16);border:1px solid #4f7a3e;border-radius:40px;padding:8px 16px;margin-bottom:26px;">
                         <div style="width:9px;height:9px;border-radius:50%;background:#a0f1bd;"></div>
-                        <span style="font-family:'Work Sans';font-weight:500;font-size:16px;letter-spacing:-.02em;color:#cdeccf;">Ethereum · {{ $shortAddress }}</span>
+                        <span style="font-family:'Work Sans';font-weight:500;font-size:16px;letter-spacing:-.02em;color:#cdeccf;">{{ $chainLabel ?? 'Ethereum' }} · {{ $shortAddress }}</span>
                     </div>
                     @php $sev = \App\Scan\Severity::tokens($result['severity']); @endphp
                     <div style="font-family:'Work Sans';font-weight:200;font-size:76px;line-height:1.0;letter-spacing:-.05em;color:#fff;margin-bottom:18px;">Risky approvals<br><span style="font-weight:400;">{{ count($result['risks']) }} found</span></div>

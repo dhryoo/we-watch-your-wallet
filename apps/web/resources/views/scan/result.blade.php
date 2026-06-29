@@ -1,9 +1,9 @@
-<x-scan-layout :title="'Wallet risk scan · ' . $shortAddress" :ogImage="url('/scan/' . $address . '/og-image')" ogDescription="Free read-only, non-custodial Ethereum token-approval risk scan.">
+<x-scan-layout :title="'Wallet risk scan · ' . $shortAddress" :ogImage="url($scanBase . '/og-image')" ogDescription="Free read-only, non-custodial Ethereum token-approval risk scan.">
     <header class="wt-header">
         <div class="wt-header__row">
             <div class="wt-identity">
                 <div class="wt-chiprow">
-                    <span class="wt-chain-chip"><span class="wt-chain-chip__dot"></span><span class="wt-chain-chip__label">Ethereum · chainId {{ $chainId }}</span></span>
+                    <span class="wt-chain-chip"><span class="wt-chain-chip__dot"></span><span class="wt-chain-chip__label">{{ $chainLabel }} · chainId {{ $chainId }}</span></span>
                     <span class="wt-readonly">Read-only analysis</span>
                 </div>
                 <div class="wt-addr-row">
@@ -22,8 +22,8 @@
                     <x-severity-badge :severity="$result['severity']" />
                 </div>
                 <div class="wt-actions-col">
-                    <a href="{{ url('/scan/' . $address) }}" class="wt-btn wt-btn--solid" data-scan-loading data-addr="{{ $address }}">Re-scan</a>
-                    <a href="{{ url('/scan/' . $address . '/og') }}" class="wt-btn wt-btn--outline"><span style="font-size:13px;">↗</span> Share result</a>
+                    <a href="{{ url($scanBase) }}" class="wt-btn wt-btn--solid" data-scan-loading data-addr="{{ $address }}">Re-scan</a>
+                    <a href="{{ url($scanBase . '/og') }}" class="wt-btn wt-btn--outline"><span style="font-size:13px;">↗</span> Share result</a>
                 </div>
             </div>
         </div>
@@ -64,6 +64,7 @@
                 <input type="hidden" name="wallet_address" value="{{ $address }}">
                 <input type="hidden" name="scanned_wallet" value="{{ $address }}">
                 <input type="hidden" name="scan_severity" value="{{ $result['severity'] }}">
+                <input type="hidden" name="chain" value="{{ $chainSlug }}">
                 @error('monitor')<div class="wt-form-error" style="margin:0 0 10px;">{{ $message }}</div>@enderror
                 {{-- honeypot: a real person leaves this empty --}}
                 <input type="text" name="website" class="wt-hp" tabindex="-1" autocomplete="off" aria-hidden="true">

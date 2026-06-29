@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Scan\Chain;
 use App\Scan\ScanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,21 +16,31 @@ use Illuminate\Http\Request;
  */
 class ScanApiController extends Controller
 {
-    private const CHAIN_ID = 1;
     private const ADDRESS_RE = '/^0x[0-9a-fA-F]{40}$/';
 
     public function __construct(private readonly ScanService $scans)
     {
     }
 
-    public function show(Request $request, string $address): JsonResponse
+    public function show(Request $request): JsonResponse
     {
+        // 라우트 파라미터는 이름으로 읽는다(체인 유무 두 라우트를 한 메서드로).
+        $address = (string) $request->route('address');
+        $chain = (string) $request->route('chain', Chain::DEFAULT);
+        $chainMeta = Chain::fromSlug($chain);
+
+        if ($chainMeta === null)
+        {
+            return $this->json(['error' => 'unsupported_chain', 'message' => 'Supported chains: ' . implode(', ', Chain::slugs()) . '.'], 422);
+        }
+
         if (!preg_match(self::ADDRESS_RE, $address))
         {
             return $this->json(['error' => 'invalid_address', 'message' => 'Provide a 0x-prefixed, 40-hex Ethereum address.'], 422);
         }
 
-        $result = $this->scans->scan($address, self::CHAIN_ID, $request->ip());
+        $chainId = $chainMeta['id'];
+        $result = $this->scans->scan($address, $chainId, $request->ip());
 
         if ($result === null)
         {
@@ -49,7 +60,7 @@ class ScanApiController extends Controller
 
         return $this->json([
             'address' => $address,
-            'chainId' => self::CHAIN_ID,
+            'chainId' => $chainId,
             'scannedAt' => gmdate('Y-m-d\TH:i:s\Z', (int) ($result['scannedAt'] ?? time())),
             'score' => $result['score'],
             'severity' => $result['severity'],

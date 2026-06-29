@@ -143,6 +143,8 @@ a{ color: inherit; }
 .wt-cta__inputrow{ display: flex; gap: 10px; margin-bottom: 12px; }
 .wt-input{ flex: 1; background: #fff; border: 1px solid var(--wt-line); border-radius: var(--r-pill); padding: 14px 18px; font-size: 14px; letter-spacing: -.02em; color: var(--wt-green); }
 .wt-input::placeholder{ color: #9AA897; }
+.wt-chain-select{ flex: none; background: #fff; border: 1px solid var(--wt-line); border-radius: var(--r-pill); padding: 14px 16px; font-size: 14px; letter-spacing: -.02em; color: var(--wt-green); cursor: pointer; }
+@media (max-width: 560px){ .wt-cta__inputrow{ flex-wrap: wrap; } .wt-chain-select{ flex: 1 1 100%; } }
 
 /* ---- Monitor lead form (honeypot, consent, error, success) ---- */
 .wt-hp{ position: absolute !important; left: -9999px; top: -9999px; width: 1px; height: 1px; opacity: 0; }

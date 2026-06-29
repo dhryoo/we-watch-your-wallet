@@ -67,45 +67,49 @@ class GoPlusScanner
             }
         }
 
-        // NFT setApprovalForAll(별도 GoPlus 엔드포인트). 실패해도 토큰 결과는 유지하고 stale 표기(부분 데이터).
+        // NFT setApprovalForAll(별도 GoPlus 엔드포인트) — GoPlus가 지원하는 체인에서만 시도.
+        // 미지원 체인(Base·BSC)은 건너뛴다(거짓 STALE 방지). 실패해도 토큰 결과는 유지하고 stale 표기(부분 데이터).
         $nftStale = false;
 
-        try
+        if (Chain::supportsNft($chainId))
         {
-            $nftTokens = $this->gateway->nftApprovals($address, $chainId);
-        }
-        catch (\Throwable $e)
-        {
-            $nftTokens = [];
-            $nftStale = true;
-        }
-
-        foreach ($nftTokens as $nft)
-        {
-            $symbol = $this->cleanSymbol($nft['nft_symbol'] ?? $nft['nft_name'] ?? 'NFT');
-            $nftAddr = Address::short((string) ($nft['nft_address'] ?? ''));
-
-            foreach (($nft['approved_list'] ?? []) as $operator)
+            try
             {
-                // setApprovalForAll만 대상. ERC721의 단일토큰 approve(approved_for_all=0)는 제외(1155는 필드 없음→연산자 승인=1).
-                if ((int) ($operator['approved_for_all'] ?? 1) !== 1)
+                $nftTokens = $this->gateway->nftApprovals($address, $chainId);
+            }
+            catch (\Throwable $e)
+            {
+                $nftTokens = [];
+                $nftStale = true;
+            }
+
+            foreach ($nftTokens as $nft)
+            {
+                $symbol = $this->cleanSymbol($nft['nft_symbol'] ?? $nft['nft_name'] ?? 'NFT');
+                $nftAddr = Address::short((string) ($nft['nft_address'] ?? ''));
+
+                foreach (($nft['approved_list'] ?? []) as $operator)
                 {
-                    continue;
+                    // setApprovalForAll만 대상. ERC721의 단일토큰 approve(approved_for_all=0)는 제외(1155는 필드 없음→연산자 승인=1).
+                    if ((int) ($operator['approved_for_all'] ?? 1) !== 1)
+                    {
+                        continue;
+                    }
+
+                    $reviewed++;
+                    $input = $this->mapNftInput($operator, $now);
+                    $severity = ApprovalRisk::classify($input);
+                    $maxScore = max($maxScore, ApprovalRisk::score($input));
+                    $topRank = max($topRank, self::RANK[$severity]);
+
+                    if ($severity === 'INFO')
+                    {
+                        continue;
+                    }
+
+                    $operatorAddr = $this->shortAddr($operator['approved_contract'] ?? null);
+                    $risks[] = $this->nftRiskItem($symbol, $nftAddr, $input, $severity, $revokeUrl, $operatorAddr);
                 }
-
-                $reviewed++;
-                $input = $this->mapNftInput($operator, $now);
-                $severity = ApprovalRisk::classify($input);
-                $maxScore = max($maxScore, ApprovalRisk::score($input));
-                $topRank = max($topRank, self::RANK[$severity]);
-
-                if ($severity === 'INFO')
-                {
-                    continue;
-                }
-
-                $operatorAddr = $this->shortAddr($operator['approved_contract'] ?? null);
-                $risks[] = $this->nftRiskItem($symbol, $nftAddr, $input, $severity, $revokeUrl, $operatorAddr);
             }
         }
 
