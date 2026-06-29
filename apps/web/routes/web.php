@@ -14,6 +14,9 @@ Route::post('/scan', [ScanController::class, 'store']);
 Route::post('/monitor', [MonitorLeadController::class, 'store']);
 // Public read-only JSON API lives in routes/api.php (sessionless): GET /api/scan/{address}
 
+// PNG share card. Path intentionally has no .png/.jpg/... extension so nginx's static-asset
+// handler doesn't intercept it (it would 404 before reaching PHP); crawlers use Content-Type.
+Route::get('/scan/{address}/og-image', [ScanController::class, 'ogImage']);
 Route::get('/scan/{address}/og', [ScanController::class, 'og']);
 Route::get('/scan/{address}/email', [ScanController::class, 'email']);
 Route::get('/scan/{address}', [ScanController::class, 'show']);

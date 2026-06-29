@@ -1,4 +1,4 @@
-<x-scan-layout :title="'No risky approvals · ' . $shortAddress">
+<x-scan-layout :title="'No risky approvals · ' . $shortAddress" :ogImage="url('/scan/' . $address . '/og-image')" ogDescription="Free read-only, non-custodial Ethereum token-approval risk scan.">
     <header class="wt-header wt-header--simple">
         <div class="wt-identity">
             <div class="wt-chiprow">

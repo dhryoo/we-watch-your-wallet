@@ -7,12 +7,14 @@ use App\Scan\Ens;
 use App\Scan\EnsException;
 use App\Scan\EnsResolver;
 use App\Scan\MockScanData;
+use App\Scan\OgImage;
 use App\Scan\ScanResult;
 use App\Scan\ScanService;
 use App\Scan\Turnstile;
 use App\Scan\WalletAddress;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
@@ -139,6 +141,36 @@ class ScanController extends Controller
         return view('scan.og', [
             'shortAddress' => Address::short($address),
             'result' => $result,
+        ]);
+    }
+
+    /** OG 공유 이미지(PNG) — 소셜 크롤러가 og:image로 가져간다. 결과 지문 기준 24h 캐시. 실패 시 정직한 unavailable 카드. */
+    public function ogImage(Request $request, string $address, OgImage $og): Response
+    {
+        if (!preg_match(self::ADDRESS_RE, $address))
+        {
+            abort(404);
+        }
+
+        $result = $this->scans->scan($address, self::CHAIN_ID, $request->ip()) ?? $this->blank();
+
+        $fingerprint = md5(implode('|', [
+            strtolower($address),
+            (string) ($result['severity'] ?? ''),
+            (string) ($result['score'] ?? ''),
+            (string) count($result['risks'] ?? []),
+            ($result['failed'] ?? false) ? 'f' : 'k',
+        ]));
+
+        $png = Cache::remember(
+            'og:png:' . $fingerprint,
+            (int) config('scan.cache_ttl', 86400),
+            fn () => $og->render($result, Address::short($address)),
+        );
+
+        return response($png, 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'public, max-age=86400',
         ]);
     }
 

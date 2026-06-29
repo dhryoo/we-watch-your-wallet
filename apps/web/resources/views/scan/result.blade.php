@@ -1,4 +1,4 @@
-<x-scan-layout :title="'Wallet risk scan · ' . $shortAddress" :ogImage="url('/scan/' . $address . '/og')" ogDescription="Free read-only, non-custodial Ethereum token-approval risk scan.">
+<x-scan-layout :title="'Wallet risk scan · ' . $shortAddress" :ogImage="url('/scan/' . $address . '/og-image')" ogDescription="Free read-only, non-custodial Ethereum token-approval risk scan.">
     <header class="wt-header">
         <div class="wt-header__row">
             <div class="wt-identity">

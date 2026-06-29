@@ -13,6 +13,8 @@
         <meta property="og:title" content="{{ $title }}">
         @if ($ogDescription)<meta property="og:description" content="{{ $ogDescription }}">@endif
         <meta property="og:image" content="{{ $ogImage }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
         <meta name="twitter:card" content="summary_large_image">
     @endif
 </head>
