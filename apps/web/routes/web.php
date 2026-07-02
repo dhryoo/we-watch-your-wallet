@@ -11,6 +11,12 @@ Route::get('/sitemap.xml', SitemapController::class);
 Route::view('/how-it-works', 'pages.how-it-works');
 Route::view('/non-custodial', 'pages.non-custodial');
 Route::view('/api-docs', 'pages.api');
+// Learn — SEO 교육 콘텐츠(검색 유입 → 스캔 전환). 글 추가 시 sitemap도 갱신할 것.
+Route::view('/learn', 'pages.learn.index');
+Route::view('/learn/what-is-a-token-approval', 'pages.learn.what-is-a-token-approval');
+Route::view('/learn/how-to-revoke-token-approvals', 'pages.learn.how-to-revoke-token-approvals');
+Route::view('/learn/unlimited-token-approvals', 'pages.learn.unlimited-token-approvals');
+Route::view('/learn/approval-phishing', 'pages.learn.approval-phishing');
 Route::post('/scan', [ScanController::class, 'store']);
 Route::post('/monitor', [MonitorLeadController::class, 'store']);
 // Public read-only JSON API lives in routes/api.php (sessionless): GET /api/scan/{address}

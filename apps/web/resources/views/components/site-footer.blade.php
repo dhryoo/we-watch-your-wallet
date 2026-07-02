@@ -5,6 +5,7 @@
     </div>
     <nav class="wt-footer__links">
         <a href="{{ url('/how-it-works') }}">How it works</a>
+        <a href="{{ url('/learn') }}">Learn</a>
         <a href="{{ url('/non-custodial') }}">Non-custodial</a>
         <a href="{{ url('/api-docs') }}">API</a>
         @if ($repo = config('scan.repo_url'))<a href="{{ $repo }}" target="_blank" rel="noopener noreferrer">Open source ↗</a>@endif

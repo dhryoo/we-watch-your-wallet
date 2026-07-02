@@ -13,7 +13,14 @@ class SitemapController extends Controller
 {
     public function __invoke(): Response
     {
-        $paths = ['/', '/how-it-works', '/non-custodial', '/api-docs'];
+        $paths = [
+            '/', '/how-it-works', '/non-custodial', '/api-docs',
+            '/learn',
+            '/learn/what-is-a-token-approval',
+            '/learn/how-to-revoke-token-approvals',
+            '/learn/unlimited-token-approvals',
+            '/learn/approval-phishing',
+        ];
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
             . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
