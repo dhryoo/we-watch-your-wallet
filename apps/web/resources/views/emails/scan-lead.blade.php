@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Wallet risk scan summary</title>
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600&family=DM+Sans:wght@500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    {{-- 웹폰트 미참조 — 수신자 IP가 폰트 로드로 제3자에 새지 않게. 인라인 font-family가 시스템 폰트로 폴백(이메일 표준). --}}
 </head>
 <body style="margin:0;background:#f4f7f5;font-family:'Work Sans',sans-serif;">
     <div style="display:none;max-height:0;overflow:hidden;color:#f4f7f5;">Includes an unlimited USDC approval. Review and revoke yourself if needed.</div>

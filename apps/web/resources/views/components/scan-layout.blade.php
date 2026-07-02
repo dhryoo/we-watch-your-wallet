@@ -32,9 +32,9 @@
     <meta name="theme-color" content="#2E4F21">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@200;300;400;500;600&family=DM+Sans:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    {{-- 셀프호스팅 폰트 — 방문자 IP가 폰트 로드로 제3자(구글)에 새지 않게("무추적" 일관성). --}}
+    <link rel="preload" href="{{ asset('fonts/worksans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('css/watchtower.css') }}">
 
     <meta property="og:type" content="website">
