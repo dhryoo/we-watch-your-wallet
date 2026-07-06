@@ -8,7 +8,8 @@
     $fullTitle = $title . ' · We Watch Your Wallet';
     $ogDesc = $ogDescription ?? $description;
     $ogImg = $ogImage ?? asset('og-default.png'); // 페이지별 카드 없으면 브랜드 기본 카드
-    $canonical = url()->current();
+    // 정본 URL은 항상 apex(www 제거) — Search Console 중복-표준 방지. (www 요청은 미들웨어가 301하지만 방어적으로 한 번 더.)
+    $canonical = preg_replace('#^(https?://)www\.#i', '$1', url()->current());
     $ld = [
         '@context' => 'https://schema.org',
         '@type' => 'WebApplication',

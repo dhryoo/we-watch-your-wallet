@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RedirectWww;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Canonical host: 301 www.* → apex on every request (SEO — one indexable host, no duplicates).
+        $middleware->prepend(RedirectWww::class);
+
         // Real client IP (which the per-IP rate limits depend on) is correct out of the box with
         // direct nginx → PHP-FPM. If a CDN/LB (e.g. Cloudflare) is later put in front, fix the IP
         // at the nginx layer with the realip module (see deploy/nginx/we-watch.conf) rather than
